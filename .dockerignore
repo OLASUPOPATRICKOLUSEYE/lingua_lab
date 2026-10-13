@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+.next
+.git
+.pgdata
+.pnpm-store
+*.log
+.env
+.env.local
+.DS_Store
+coverage

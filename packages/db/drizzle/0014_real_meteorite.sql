@@ -1,0 +1,2 @@
+ALTER TABLE "submissions" ADD COLUMN "media_type" text;--> statement-breakpoint
+ALTER TABLE "submissions" ADD CONSTRAINT "submissions_media_type_check" CHECK ("submissions"."media_type" is null or "submissions"."media_type" in ('audio', 'video'));

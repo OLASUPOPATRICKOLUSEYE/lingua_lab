@@ -1,0 +1,125 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1781553096618,
+      "tag": "0000_slimy_thunderbolts",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783090000000,
+      "tag": "0001_teacher_review_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783304000000,
+      "tag": "0002_submission_processing_states",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783352200000,
+      "tag": "0003_grading_result_word_timestamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783512000000,
+      "tag": "0004_activities",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783515600000,
+      "tag": "0005_activity_reference_audio",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783560000000,
+      "tag": "0006_submissions_activity_fk",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783646400000,
+      "tag": "0007_neat_romulus",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783732800000,
+      "tag": "0008_chubby_mongoose",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783819200000,
+      "tag": "0009_nasty_overlord",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784702359616,
+      "tag": "0010_true_nick_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785348482319,
+      "tag": "0011_previous_firebrand",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786353115125,
+      "tag": "0012_familiar_lockjaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1786476252769,
+      "tag": "0013_nervous_excalibur",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786518921049,
+      "tag": "0014_real_meteorite",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1786615086662,
+      "tag": "0015_adorable_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1786680612394,
+      "tag": "0016_daffy_timeslip",
+      "breakpoints": true
+    }
+  ]
+}

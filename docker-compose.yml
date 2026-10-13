@@ -1,0 +1,145 @@
+# Local development stack for LinguaLab with the normalization queue.
+#
+# Brings up Postgres, Redis, the Next.js dev server, and the FFmpeg worker in
+# one command: `docker compose up`.
+#
+# First run, after the DB is healthy, apply schema + RLS:
+#   docker compose exec app pnpm db:migrate
+#   docker compose exec app pnpm rls:apply
+
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai_service/Dockerfile
+    environment:
+      AI_TRANSCRIBE_MODEL: "${AI_TRANSCRIBE_MODEL:-medium}"
+      AI_TRANSCRIBE_DEVICE: "${AI_TRANSCRIBE_DEVICE:-cpu}"
+      AI_TRANSCRIBE_COMPUTE_TYPE: "${AI_TRANSCRIBE_COMPUTE_TYPE:-int8}"
+      AI_REQUIRE_VAD: "${AI_REQUIRE_VAD:-false}"
+      AI_PRONUNCIATION: "${AI_PRONUNCIATION:-true}"
+      AI_PHONEME_MODEL: "${AI_PHONEME_MODEL:-facebook/wav2vec2-lv-60-espeak-cv-ft}"
+      S3_ENDPOINT: "${S3_ENDPOINT}"
+      S3_REGION: "${S3_REGION}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: lingua_admin
+      POSTGRES_PASSWORD: lingua_admin
+      POSTGRES_DB: lingua_lab
+    ports:
+      # Host 5433 (matches the local Homebrew cluster) -> container 5432.
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Role + auth-shim bootstrap, runs once on an empty data dir.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lingua_admin -d lingua_lab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-bookworm
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      target: dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    environment:
+      # App connects as the non-privileged role (RLS enforced); admin URL is for
+      # migrations only. Hostname `postgres` is the compose service.
+      DATABASE_URL: "postgresql://lingua_app:lingua_app@postgres:5432/lingua_lab"
+      DATABASE_ADMIN_URL: "postgresql://lingua_admin:lingua_admin@postgres:5432/lingua_lab"
+      REDIS_URL: "redis://redis:6379"
+      AI_SERVICE_URL: "${AI_SERVICE_URL:-http://ai-service:8000}"
+      NEXT_PUBLIC_SUPABASE_URL: "${NEXT_PUBLIC_SUPABASE_URL:-https://YOUR-PROJECT.supabase.co}"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "${NEXT_PUBLIC_SUPABASE_ANON_KEY:-your-anon-key}"
+      # Bind to all interfaces inside the container.
+      HOSTNAME: "0.0.0.0"
+      PORT: "8080"
+      S3_ENDPOINT: "${S3_ENDPOINT}"
+      S3_REGION: "${S3_REGION}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+    ports:
+      - "8080:8080"
+    volumes:
+      # Bind-mount source for hot reload; keep container's node_modules + .next.
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+  normalization-worker:
+    build:
+      context: .
+      target: dev
+    command: ["pnpm", "worker:normalization"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: "postgresql://lingua_app:lingua_app@postgres:5432/lingua_lab"
+      DATABASE_ADMIN_URL: "postgresql://lingua_admin:lingua_admin@postgres:5432/lingua_lab"
+      REDIS_URL: "redis://redis:6379"
+      AI_SERVICE_URL: "${AI_SERVICE_URL:-http://ai-service:8000}"
+      NORMALIZATION_WORKER_CONCURRENCY: "${NORMALIZATION_WORKER_CONCURRENCY:-50}"
+      S3_ENDPOINT: "${S3_ENDPOINT}"
+      S3_REGION: "${S3_REGION}"
+      S3_BUCKET: "${S3_BUCKET}"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  grading-worker:
+    build:
+      context: .
+      target: dev
+    command: ["pnpm", "worker:grading"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: "postgresql://lingua_app:lingua_app@postgres:5432/lingua_lab"
+      DATABASE_ADMIN_URL: "postgresql://lingua_admin:lingua_admin@postgres:5432/lingua_lab"
+      REDIS_URL: "redis://redis:6379"
+      AI_SERVICE_URL: "${AI_SERVICE_URL:-http://ai-service:8000}"
+      GRADING_WORKER_CONCURRENCY: "${GRADING_WORKER_CONCURRENCY:-1}"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

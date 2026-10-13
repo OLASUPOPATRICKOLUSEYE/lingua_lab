@@ -1,0 +1,17 @@
+packages:
+  - "."
+  - "packages/*"
+
+# Build scripts pnpm would otherwise gate behind manual `pnpm approve-builds`
+# approval (pnpm 11+: `onlyBuiltDependencies`/`ignoredBuiltDependencies` were
+# removed in favor of this single map). All four are real, needed native
+# accelerators, not skippable: esbuild (vitest/tsx), sharp (next/image
+# optimization — a Next.js dependency), msgpackr-extract (bullmq's
+# serialization), unrs-resolver (eslint-import-resolver-typescript).
+allowBuilds:
+  esbuild: true
+  sharp: true
+  msgpackr-extract: true
+  unrs-resolver: true
+
+ignore-workspace-root-check: true

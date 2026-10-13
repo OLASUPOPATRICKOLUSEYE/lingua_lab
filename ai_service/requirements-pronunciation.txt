@@ -1,0 +1,17 @@
+# Optional pronunciation layer (MFA + Wav2Vec2 phoneme CTC).
+# Install ON TOP of requirements.txt on CPU/GPU-tier hosts only — the base
+# service runs without these and returns phoneme_scores = null.
+#
+# Montreal Forced Aligner is NOT pip-installable reliably; install via conda:
+#   conda install -c conda-forge montreal-forced-aligner
+#   mfa model download acoustic english_mfa
+#   mfa model download dictionary english_mfa
+#   mfa model download acoustic french_mfa
+#   mfa model download dictionary french_mfa
+# (PRD addendum §6.6). Point AI_MFA_BIN at the conda env's `mfa` if it is not
+# on PATH.
+#
+# Floors, not pins: torch wheels are platform-specific; pick the build that
+# matches the tier host (CUDA vs CPU) when provisioning.
+torch>=2.3
+transformers>=4.44
